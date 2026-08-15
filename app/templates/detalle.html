@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block titulo %}Factura #{{ f.id }} — {{ f.cliente }}{% endblock %}
+
+{% block contenido %}
+<p><a href="/">← Volver a la libreta</a></p>
+
+<h1>{{ f.cliente }} <span class="estado {{ f.estado }}">{{ f.estado }}</span></h1>
+
+<table>
+  <tr><th>Monto</th><td class="num">{{ f.monto | monto }}</td></tr>
+  <tr><th>Saldo</th><td class="num">{{ f.saldo | monto }}</td></tr>
+  <tr>
+    <th>Vence</th>
+    <td>
+      {{ f.fecha_venc }}
+      {% if f.vencida %}<span class="vencida">vencida hace {{ f.dias_atraso }} días</span>{% endif %}
+    </td>
+  </tr>
+  <tr><th>Creada</th><td>{{ f.creada_en }}</td></tr>
+</table>
+
+<h2>Cobro</h2>
+{% if f.cobro_por_link %}
+  <p>
+    <span class="modo">por link</span>
+    Esta factura se cobra por link, así que el registro manual de pagos está
+    deshabilitado. El pago se registra solo cuando MercadoPago avisa.
+  </p>
+  {% if link %}
+  <p>
+    Link vigente: <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a><br>
+    <small>referencia {{ link.referencia }} · vence {{ link.expira_en }}</small>
+  </p>
+  {% endif %}
+  <form method="post" action="/facturas/{{ f.id }}/cobro-por-link">
+    <input type="hidden" name="activar" value="0">
+    <button class="sec" type="submit">Cobrar por fuera (cancela el link)</button>
+  </form>
+{% else %}
+  <form method="post" action="/facturas/{{ f.id }}/cobro-por-link" style="margin-bottom:1rem">
+    <input type="hidden" name="activar" value="1">
+    <button class="sec" type="submit" {% if f.saldo <= 0 %}disabled{% endif %}>
+      Cobrar por link
+    </button>
+  </form>
+
+  <h2>Registrar pago</h2>
+  <form class="inline" method="post" action="/facturas/{{ f.id }}/pagos">
+    <div>
+      <label for="monto">Monto</label>
+      <input id="monto" name="monto" inputmode="decimal" value="{{ f.saldo | monto }}" required>
+    </div>
+    <div><label for="fecha">Fecha del pago</label><input id="fecha" name="fecha" type="date"></div>
+    <button type="submit">Registrar pago</button>
+  </form>
+{% endif %}
+
+{% if links %}
+<h2>Links generados</h2>
+<table>
+  <tr><th>Creado</th><th>Referencia</th><th class="num">Monto</th><th>Vence</th><th>Estado</th></tr>
+  {% for l in links %}
+  <tr>
+    <td>{{ l.creado_en }}</td>
+    <td><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.referencia }}</a></td>
+    <td class="num">{{ l.monto | monto }}</td>
+    <td>{{ l.expira_en }}</td>
+    <td><span class="modo">{{ l.estado }}</span></td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>Historial</h2>
+<table>
+  <tr><th>Fecha</th><th class="num">Monto</th><th>Origen</th><th>Detalle</th><th></th></tr>
+  {% for m in movimientos %}
+  <tr>
+    <td>{{ m.fecha }}</td>
+    <td class="num">{{ m.monto | monto }}</td>
+    <td>
+      {{ m.origen }}
+      {% if m.reconciliacion_id %}<small>(reconciliación #{{ m.reconciliacion_id }})</small>{% endif %}
+    </td>
+    <td>
+      {% if m.revierte_a %}reversión del movimiento #{{ m.revierte_a }}
+      {% elif m.revertido %}revertido
+      {% elif m.referencia_externa %}<small>ref. {{ m.referencia_externa }}</small>
+      {% endif %}
+    </td>
+    <td>
+      {% if m.revierte_a or m.revertido or m.proveedor %}
+        <button class="sec" disabled
+          title="{% if m.revierte_a %}una reversión no se revierte
+                 {% elif m.proveedor %}los movimientos del proveedor se corrigen con un reembolso
+                 {% else %}ya fue revertido{% endif %}">
+          Revertir
+        </button>
+      {% else %}
+        <form method="post" action="/pagos/{{ m.id }}/revertir" style="display:inline">
+          <button class="sec" type="submit">Revertir</button>
+        </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5">Sin movimientos registrados.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

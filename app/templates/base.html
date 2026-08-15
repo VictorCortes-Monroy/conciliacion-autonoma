@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Libreta de facturas{% endblock %}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 60rem; margin: 2rem auto; padding: 0 1rem; color: #222; }
+    h1, h2 { font-weight: 600; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid #e5e5e5; }
+    th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: #666; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .estado { font-size: .75rem; padding: .15rem .5rem; border-radius: 1rem; border: 1px solid; }
+    .PENDIENTE { color: #555; border-color: #ccc; }
+    .PARCIAL   { color: #8a5a00; border-color: #e0b060; background: #fff8e8; }
+    .PAGADA    { color: #1a6b3a; border-color: #8ccfa8; background: #eefaf2; }
+    .vencida { color: #a11; font-size: .75rem; }
+    .error { background: #fdecea; border: 1px solid #f5c2bd; padding: .6rem .8rem; border-radius: .3rem; }
+    .aviso { background: #eef5fd; border: 1px solid #b8d4f0; padding: .6rem .8rem; border-radius: .3rem; }
+    .modo { font-size: .75rem; padding: .15rem .5rem; border-radius: 1rem; border: 1px solid #b8d4f0; color: #14527a; background: #f4f9ff; }
+    nav { display: flex; gap: 1rem; margin-bottom: 1.5rem; font-size: .9rem; }
+    .cruda { font-family: ui-monospace, monospace; font-size: .75rem; white-space: pre-wrap; word-break: break-all; color: #555; max-width: 28rem; }
+    .motivo { color: #a11; font-size: .85rem; }
+    form.inline { display: flex; gap: .5rem; flex-wrap: wrap; align-items: end; margin: 1rem 0; }
+    label { display: block; font-size: .75rem; color: #666; }
+    input { padding: .4rem; border: 1px solid #ccc; border-radius: .25rem; }
+    button { padding: .45rem .9rem; border: 1px solid #333; background: #333; color: #fff; border-radius: .25rem; cursor: pointer; }
+    button.sec { background: #fff; color: #333; }
+    button[disabled] { opacity: .35; cursor: not-allowed; }
+    .totales { display: flex; gap: 2rem; flex-wrap: wrap; margin: 1rem 0; }
+    .totales div span { display: block; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+    a { color: #14527a; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/">Libreta</a>
+    <a href="/excepciones">Bandeja de excepciones</a>
+  </nav>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  {% if aviso %}<p class="aviso">{{ aviso }}</p>{% endif %}
+  {% block contenido %}{% endblock %}
+</body>
+</html>

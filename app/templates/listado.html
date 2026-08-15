@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<h1>Libreta de facturas</h1>
+
+<div class="totales">
+  <div>Total adeudado <span>{{ ag.adeudado | monto }}</span></div>
+  <div>Total vencido <span style="color:#a11">{{ ag.vencido | monto }}</span></div>
+  {% if excepciones %}
+  <div>Excepciones <span style="color:#a11"><a href="/excepciones">{{ excepciones }}</a></span></div>
+  {% endif %}
+</div>
+
+{% if ag.por_cliente %}
+<h2>Deuda por cliente</h2>
+<table>
+  <tr><th>Cliente</th><th class="num">Adeuda</th></tr>
+  {% for c in ag.por_cliente %}
+  <tr><td>{{ c.cliente }}</td><td class="num">{{ c.deuda | monto }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>Nueva factura</h2>
+<form class="inline" method="post" action="/facturas">
+  <div><label for="cliente">Cliente</label><input id="cliente" name="cliente" required></div>
+  <div><label for="monto">Monto</label><input id="monto" name="monto" inputmode="decimal" required></div>
+  <div><label for="fecha_venc">Vence</label><input id="fecha_venc" name="fecha_venc" type="date" required></div>
+  <button type="submit">Crear factura</button>
+</form>
+
+<h2>Facturas</h2>
+<table>
+  <tr>
+    <th>Cliente</th><th>Vence</th><th class="num">Monto</th>
+    <th class="num">Saldo</th><th>Estado</th><th>Cobro</th><th></th>
+  </tr>
+  {% for f in facturas %}
+  <tr>
+    <td><a href="/facturas/{{ f.id }}">{{ f.cliente }}</a></td>
+    <td>
+      {{ f.fecha_venc }}
+      {% if f.vencida %}<span class="vencida">vencida hace {{ f.dias_atraso }} d</span>{% endif %}
+    </td>
+    <td class="num">{{ f.monto | monto }}</td>
+    <td class="num">{{ f.saldo | monto }}</td>
+    <td><span class="estado {{ f.estado }}">{{ f.estado }}</span></td>
+    <td>
+      {% if f.cobro_por_link %}<span class="modo">por link</span>
+      {% else %}<span class="modo" style="border-color:#ddd;color:#666;background:#fafafa">manual</span>
+      {% endif %}
+    </td>
+    <td><a href="/facturas/{{ f.id }}">ver</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7">Todavía no hay facturas.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
